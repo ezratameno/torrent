@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"ezratameno/torrent/pkg/torrent"
 	"fmt"
 	"os"
@@ -51,9 +50,8 @@ func displayShows(client *torrent.TorrentClient) {
 }
 
 func clearScreen() {
-	fmt.Println("Press any key to go back to the main menu...")
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
+	fmt.Println("Press Enter to go back to the main menu...")
+	fmt.Scanln()
 	// need to make cross platform
 	// clear screen
 	command := []string{"/c", "cls"}

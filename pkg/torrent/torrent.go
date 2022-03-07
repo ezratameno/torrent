@@ -1,15 +1,15 @@
 package torrent
 
 import (
-	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 
 	"github.com/gocolly/colly"
 )
 
-var listOfShows []string = []string{"Young.Justice", "Legacies", "Star.Trek.Discovery", "bmf.", "power.book.ii.ghost", "S.W.A.T", "Blue.Bloods", "SEAL.Team", "Dexter"}
+var listOfShows []string = []string{"Young.Justice", "Legacies", "Star.Trek.Discovery", "bmf.", "power.book.ii.ghost", "S.W.A.T", "Blue.Bloods", "SEAL.Team", "Dexter", "Peaky.Blinders"}
 
 const domain string = "1337x.to"
 const fileType string = ".torrent"
@@ -28,6 +28,7 @@ type EpisodeData struct {
 	Downloads    string
 	Seeders      string
 	Leechers     string
+	Image        string
 }
 type TorrentClient struct {
 	ShowsName     []string
@@ -54,9 +55,6 @@ func (client *TorrentClient) getTodayEpisodes() []EpisodeData {
 		})
 	})
 
-	c.OnRequest(func(r *colly.Request) {
-		fmt.Println("Visiting", r.URL.String()+"\n")
-	})
 	// Start scraping on https://1337x.to/popular-tv
 	c.Visit("https://1337x.to/popular-tv")
 	return client.fillterUndesiredShowsAndGetMoreInfo(episodesFromScarpper)
@@ -80,5 +78,20 @@ func (client *TorrentClient) Download(episode EpisodeData) error {
 	if err != nil {
 		return nil
 	}
+	err = client.openTorrentFile(episode)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (client *TorrentClient) openTorrentFile(episode EpisodeData) error {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	filePath := home + "/Downloads/"
+	cmd := exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", filePath+episode.Name+fileType)
+	cmd.Start()
 	return nil
 }
