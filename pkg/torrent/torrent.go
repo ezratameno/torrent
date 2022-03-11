@@ -28,7 +28,7 @@ type EpisodeData struct {
 	Downloads    string
 	Seeders      string
 	Leechers     string
-	Image        string
+	ImageURL     string
 }
 type TorrentClient struct {
 	ShowsName     []string
@@ -49,17 +49,34 @@ func (client *TorrentClient) getTodayEpisodes() []EpisodeData {
 
 	episodesFromScarpper := []EpisodeData{}
 	c.OnHTML("td", func(e *colly.HTMLElement) {
+		// the name of the episode and the link to the page are always on index 1
+		// of each row in the table
+		var index int
 		e.ForEach("a", func(i int, h *colly.HTMLElement) {
-			ep := EpisodeData{Name: e.Text, Link: "https://" + domain + h.Attr("href")}
-			episodesFromScarpper = append(episodesFromScarpper, ep)
+			if index == 1 {
+				ep := EpisodeData{Name: e.Text, Link: "https://" + domain + h.Attr("href")}
+				episodesFromScarpper = append(episodesFromScarpper, ep)
+				index = 0
+				return
+			}
+			index++
 		})
 	})
-
 	// Start scraping on https://1337x.to/popular-tv
 	c.Visit("https://1337x.to/popular-tv")
-	return client.fillterUndesiredShowsAndGetMoreInfo(episodesFromScarpper)
+	c.Visit("https://1337x.to/popular-movies")
+
+	return GetEpisodesData(episodesFromScarpper)
 }
 
+func GetEpisodesData(episodes []EpisodeData) []EpisodeData {
+	var res []EpisodeData
+	for _, episodeInstance := range episodes {
+		GetEpisodeData(&episodeInstance)
+		res = append(res, episodeInstance)
+	}
+	return res
+}
 func (c *TorrentClient) AddDesiredShow(show string) {
 	c.ShowsName = append(c.ShowsName, show)
 	c.TodayEpisodes = c.getTodayEpisodes()

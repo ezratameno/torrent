@@ -1,7 +1,6 @@
 package torrent
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -21,10 +20,10 @@ func CheckIfEpisodeBelongToADesiredShow(c *TorrentClient, episodeName string) (b
 
 // get the specific episode data like download link
 func GetEpisodeData(episode *EpisodeData) {
-	episodeNum := strings.Split(strings.TrimPrefix(episode.Name, episode.ShowName), ".")
-	if len(episodeNum) > 0 {
-		episode.EpisodeNum = episodeNum[1]
-	}
+	// episodeNum := strings.Split(strings.TrimPrefix(episode.Name, episode.ShowName), ".")
+	// if len(episodeNum) > 0 {
+	// 	episode.EpisodeNum = episodeNum[1]
+	// }
 	c := colly.NewCollector(
 		colly.AllowedDomains(domain),
 	)
@@ -65,11 +64,20 @@ func GetEpisodeData(episode *EpisodeData) {
 
 		})
 	})
+	var imgCounter int = 0
+	c.OnHTML(".img-responsive", func(e *colly.HTMLElement) {
+		// make sure we only take the first photo
+		if imgCounter == 0 {
+			episode.ImageURL = e.Attr("data-original")
+			imgCounter++
+		}
+	})
+
 	c.Visit(episode.Link)
+
 }
 
 func DownloadFile(filepath string, url string) error {
-	fmt.Println(filepath)
 	// Get the data
 	resp, err := http.Get(url)
 	if err != nil {
