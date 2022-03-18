@@ -41,12 +41,11 @@ func main() {
 			client.Download(client.TodayEpisodes[id])
 		}
 
-		info := widget.NewLabel(formatData(client.TodayEpisodes[id]))
 		// create image
 		img, _ := loadResourceFromURLString(client.TodayEpisodes[id].ImageURL)
 		image := canvas.NewImageFromResource(img)
 		image.FillMode = canvas.ImageFillContain
-		infoContainer := container.NewVSplit(image, info)
+		infoContainer := container.NewVSplit(image, getLabels(client.TodayEpisodes[id]))
 		// fix initail size
 		infoContainer.Offset = 1
 		container := container.NewVSplit(infoContainer, btn)
@@ -66,7 +65,30 @@ func main() {
 
 }
 
-func formatData(episode torrent.EpisodeData) string {
-	return fmt.Sprintf("Episode Name:	%s\nEpisode Number:		%s\nEpisode Size:	%s\nimage:	%s\nLink:	%s",
-		episode.Name, episode.EpisodeNum, episode.TotalSize, episode.ImageURL, episode.DownloadLink)
+func getLabels(episode torrent.EpisodeData) *fyne.Container {
+	// var labels []*widget.Label = []*widget.Label{
+	// 	widget.NewLabel("Name:	" + episode.Name),
+	// 	widget.NewLabel("Category:	" + episode.Category),
+	// 	widget.NewLabel("Type:	" + episode.Type),
+	// 	widget.NewLabel("Language: " + episode.Language),
+	// 	widget.NewLabel("TotalSize: " + episode.TotalSize),
+	// 	widget.NewLabel("Uploader:	" + episode.Uploader),
+	// 	widget.NewLabel("Downloads: " + episode.Downloads),
+	// 	widget.NewLabel("Seeders:	" + episode.Seeders),
+	// 	widget.NewLabel("Leechers:	" + episode.Leechers),
+	// }
+	var c = fyne.NewContainer()
+	txt := fmt.Sprintf(`Name: %s
+Category: %s
+Type: %s
+Language: %s
+TotalSize: %s
+Uploader: %s
+Downloads: %s
+Seeders: %s
+Leechers: %s`, episode.Name, episode.Category, episode.Type,
+		episode.Language, episode.TotalSize, episode.Uploader,
+		episode.Downloads, episode.Seeders, episode.Leechers)
+	c.Add(widget.NewTextGridFromString(txt))
+	return c
 }
